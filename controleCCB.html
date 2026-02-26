@@ -1,0 +1,98 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── FUNÇÕES AUXILIARES ──────────────────────────────
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return isAuth() && userDoc().role == 'admin' && userDoc().status == 'active';
+    }
+
+    function isActiveUser() {
+      return isAuth() && userDoc().status == 'active';
+    }
+
+    function myPA() {
+      return userDoc().pa;
+    }
+
+
+    // ── COLEÇÃO: users ──────────────────────────────────
+    match /users/{userId} {
+
+      allow read: if isAuth() && (
+        request.auth.uid == userId || isAdmin()
+      );
+
+      allow create: if isAuth() &&
+        request.auth.uid == userId &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.role == 'user';
+
+      allow update: if isAuth() && (
+        request.auth.uid == userId || isAdmin()
+      );
+
+      allow delete: if isAdmin();
+    }
+
+
+    // ── COLEÇÃO: operacoes ──────────────────────────────
+    match /operacoes/{docId} {
+
+      allow read: if isActiveUser() && (
+        isAdmin() || resource.data.pa == myPA()
+      );
+
+      allow create, update, delete: if isAdmin();
+    }
+
+
+    // ── COLEÇÃO: malotes ───────────────────────────────
+    match /malotes/{docId} {
+
+      allow read: if isActiveUser() && (
+        isAdmin() || resource.data.pa == myPA()
+      );
+
+      allow create, update, delete: if isAdmin();
+    }
+
+
+    // ── COLEÇÃO: regularizacoes ────────────────────────
+    match /regularizacoes/{docId} {
+
+      allow read: if isActiveUser() && (
+        isAdmin() || resource.data.pa == myPA()
+      );
+
+      allow create, update, delete: if isAdmin();
+    }
+
+
+    // ── COLEÇÃO: notificacoes ──────────────────────────
+    match /notificacoes/{docId} {
+
+      allow read: if isActiveUser() && (
+        isAdmin() || resource.data.pa == myPA()
+      );
+
+      allow create: if isAdmin();
+
+      allow update: if isActiveUser() && (
+        isAdmin() || resource.data.pa == myPA()
+      );
+
+      allow delete: if isAdmin();
+    }
+
+  }
+}
