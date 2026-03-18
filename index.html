@@ -176,6 +176,22 @@ tr:nth-child(even) td{background:#FAFCFB}
 .bell-btn:hover{background:var(--bg);color:var(--txt)}
 .notif-overlay{display:none;position:fixed;inset:0;z-index:399}
 .notif-overlay.show{display:block}
+/* AUDITORIA */
+.audit-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px}
+.audit-item:last-child{border-bottom:none}
+.audit-item:nth-child(even){background:#FAFCFB}
+.audit-ico{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.audit-ico.criou{background:#EAFAF1;color:#1B7A3E}
+.audit-ico.editou{background:#EBF5FF;color:#2471A3}
+.audit-ico.excluiu{background:#FDEDEC;color:#C0392B}
+.audit-ico.importou{background:#F5EEF8;color:#8E44AD}
+.audit-ico.exportou{background:#E8F8F5;color:#16A085}
+.audit-ico.login{background:#FEF9E7;color:#D4AC0D}
+.audit-ico.config{background:#FEF0E7;color:#E67E22}
+.audit-txt{flex:1}
+.audit-acao{font-weight:700;color:var(--txt)}
+.audit-det{color:var(--muted);margin-top:2px;line-height:1.4}
+.audit-time{font-size:10px;color:var(--muted);white-space:nowrap;margin-top:2px}
 /* PERFIL / CONFIG */
 .pf-section{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:var(--sh)}
 .pf-section h4{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
@@ -190,6 +206,20 @@ tr:nth-child(even) td{background:#FAFCFB}
 .toggle-slider:before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
 .toggle-sw input:checked+.toggle-slider{background:var(--g3)}
 .toggle-sw input:checked+.toggle-slider:before{transform:translateX(18px)}
+/* AUDITORIA */
+.audit-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px}
+.audit-item:last-child{border-bottom:none}
+.audit-item:nth-child(even){background:var(--bg)}
+.audit-ico{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.audit-ico.a-cr{background:#EAFAF1;color:#1B7A3E}
+.audit-ico.a-ed{background:#EBF5FF;color:#2471A3}
+.audit-ico.a-dl{background:#FDEDEC;color:#C0392B}
+.audit-ico.a-im{background:#F5EEF8;color:#8E44AD}
+.audit-ico.a-lg{background:#FEF9E7;color:#D4AC0D}
+.audit-meta{flex:1;min-width:0}
+.audit-who{font-weight:700;color:var(--txt)}
+.audit-what{color:var(--muted);margin-top:1px;line-height:1.4}
+.audit-time{font-size:11px;color:var(--muted);white-space:nowrap;margin-top:2px}
 /* HIDDEN */
 .hidden{display:none!important}
 /* XPASTE */
@@ -477,6 +507,35 @@ tr:nth-child(even) td{background:#FAFCFB}
           <button class="btn btn-s" style="font-size:12px" onclick="g('cfg-import-file').click()">Carregar JSON</button>
         </div>
       </div>
+
+      <!-- LOG DE AUDITORIA -->
+      <div class="pf-section">
+        <h4>Registro de Auditoria — Todos os Usuários</h4>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div style="font-size:12px;color:var(--muted)">Histórico de ações de admins e PAs</div>
+          <button class="btn btn-rep" style="font-size:12px" onclick="limparAuditoria()">Limpar log</button>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <select class="f-inp" id="audit-fpa" onchange="renderAuditoria()" style="min-width:140px">
+            <option value="">Todos os usuários</option>
+          </select>
+          <select class="f-inp" id="audit-ftipo" onchange="renderAuditoria()" style="min-width:160px">
+            <option value="">Todos os tipos</option>
+            <option value="login">Acesso / Navegação</option>
+            <option value="criou">Criações</option>
+            <option value="editou">Edições</option>
+            <option value="excluiu">Exclusões</option>
+            <option value="importou">Importações</option>
+            <option value="exportou">Exportações</option>
+            <option value="config">Configurações</option>
+          </select>
+          <button class="btn btn-g" style="font-size:12px" onclick="g('audit-fpa').value='';g('audit-ftipo').value='';renderAuditoria()">Limpar filtro</button>
+        </div>
+        <div id="audit-list" style="max-height:380px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r2)">
+          <p class="empty">Nenhuma atividade registrada</p>
+        </div>
+      </div>
+
     </div>
 
     <!-- OPERAÇÕES -->
@@ -792,6 +851,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 function loginOk(u){
   CU={...u};
   lsSet('session',{id:u.id});
+  setTimeout(()=>audit('login','Acesso ao sistema — '+u.name,paLabel(u.pa)),100);
   loadAll();
   g('u-avt').textContent=CU.name[0].toUpperCase();
   g('u-name').textContent=CU.name;
@@ -837,6 +897,14 @@ window.saveSenha=function(){
 
 // ═══ CONFIGURAÇÕES ═══
 function loadConfig(){
+  // Popula filtro de usuários no log
+  const aufpa=g('audit-fpa');
+  if(aufpa&&aufpa.options.length<=1){
+    const log=lsGet('auditoria');
+    const pas=[...new Set(log.map(l=>l.pa).filter(Boolean))].sort();
+    pas.forEach(pa=>{const o=document.createElement('option');o.value=pa;o.textContent=pa;aufpa.appendChild(o);});
+  }
+  renderAuditoria();
   const cfg=lsGetObj('config')||{};
   const defs={exportAdmin:true,importAdmin:true,notifAdmin:true,grafAdmin:true};
   const c={...defs,...cfg};
@@ -854,6 +922,7 @@ window.saveConfig=function(){
   };
   lsSet('config',cfg);
   applyConfig();
+  audit('config','Alterou Configurações','Preferências do sistema atualizadas');
   toast('Configurações salvas!','ok');
 };
 function getConfig(){return{exportAdmin:true,importAdmin:true,notifAdmin:true,grafAdmin:true,...(lsGetObj('config')||{})};}
@@ -893,6 +962,102 @@ window.importBackup=function(input){
   };
   reader.readAsText(file);
   input.value='';
+};
+
+// ═══ AUDITORIA ═══
+
+
+function renderAuditLog(){
+  const all = dbGetAll('auditlog');
+  const el  = g('audit-list');
+  if(!el) return;
+  if(!all.length){ el.innerHTML='<p class="empty">Nenhuma atividade registrada</p>'; return; }
+
+  const icoMap = {
+    criar:    {cls:'a-cr', svg:'<polyline points="20 6 9 17 4 12"/>'},
+    editar:   {cls:'a-ed', svg:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>'},
+    excluir:  {cls:'a-dl', svg:'<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>'},
+    importar: {cls:'a-im', svg:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>'},
+    login:    {cls:'a-lg', svg:'<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>'},
+  };
+
+  el.innerHTML = all.map(a => {
+    const ico = icoMap[a.tipo] || icoMap.login;
+    const dt  = new Date(a.createdAt);
+    const time= dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const roleLabel = a.userRole==='admin'?'Admin':a.userRole==='visitante'?'Visitante':('PA '+a.userPa);
+    return `<div class="audit-item">
+      <div class="audit-ico \${ico.cls}">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\${ico.svg}</svg>
+      </div>
+      <div class="audit-meta">
+        <div class="audit-who">\${esc(a.userName)} <span style="font-weight:400;color:var(--muted)">(\${roleLabel})</span></div>
+        <div class="audit-what">\${esc(a.descricao)}\${a.detalhe?' — <span style="font-family:monospace;font-size:11px">'+esc(a.detalhe)+'</span>':''}</div>
+        <div class="audit-time">\${time}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+// ═══ AUDITORIA ═══
+const AUDIT_ICONS = {
+  criou:   '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  editou:  '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+  excluiu: '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>',
+  importou:'<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>',
+  exportou:'<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  login:   '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>',
+  config:  '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+};
+
+function audit(tipo, acao, detalhe){
+  if(!CU)return;
+  const log=lsGet('auditoria');
+  log.unshift({
+    id:uid(), tipo, acao, detalhe,
+    usuario:CU.name, pa:paLabel(CU.pa), role:CU.role,
+    createdAt:new Date().toISOString()
+  });
+  // Mantém só os últimos 200
+  lsSet('auditoria', log.slice(0,200));
+}
+
+function renderAuditoria(){
+  const log=lsGet('auditoria');
+  const el=g('audit-list');
+  if(!el)return;
+
+  // Filtro
+  const fpa=g('audit-fpa')?.value||'';
+  const ftipo=g('audit-ftipo')?.value||'';
+  let filtered=log;
+  if(fpa)filtered=filtered.filter(l=>l.pa===fpa||paLabel(l.pa)===fpa);
+  if(ftipo)filtered=filtered.filter(l=>l.tipo===ftipo);
+
+  if(!filtered.length){el.innerHTML='<p class="empty">Nenhum registro encontrado</p>';return;}
+  el.innerHTML=filtered.map(l=>{
+    const dt=new Date(l.createdAt);
+    const data=dt.toLocaleDateString('pt-BR');
+    const hora=dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const isPA=l.role!=='admin';
+    const roleBadge=isPA?`<span class="b b-tl" style="font-size:10px">PA</span>`:`<span class="b b-gr" style="font-size:10px">Admin</span>`;
+    return `<div class="audit-item">
+      <div class="audit-ico ${l.tipo}">${AUDIT_ICONS[l.tipo]||''}</div>
+      <div class="audit-txt">
+        <div class="audit-acao" style="display:flex;align-items:center;gap:6px">${esc(l.acao)} ${roleBadge}</div>
+        <div class="audit-det">${esc(l.detalhe)}</div>
+        <div class="audit-time">${esc(l.usuario)} · ${esc(l.pa)} · ${data} às ${hora}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.limparAuditoria=function(){
+  if(!confirm('Limpar todo o log de auditoria?'))return;
+  lsSet('auditoria',[]);
+  renderAuditoria();
+  toast('Log de auditoria limpo.','ok');
 };
 
 // ═══ CONFIRMAR LIMPAR NOTIFICAÇÕES ═══
@@ -949,7 +1114,10 @@ window.doReg=function(){
   dbAdd('users',{name,email,password:pass,pa:regPa,role:regRole,status:'pending'});
   sc('sc-pending');
 };
-window.doLogout=function(){lsSet('session',null);CU=null;showAuth();sc('sc-login');};
+window.doLogout=function(){
+  audit('login','Saiu do sistema','Logout realizado');
+  lsSet('session',null);CU=null;showAuth();sc('sc-login');
+};
 
 // ═══ NAVIGATION ═══
 const PAGES={dashboard:'Dashboard',graficos:'Gráficos',ops:'Operações',malote:'Malotes CCB',reg:'Regularizações',users:'Usuários',perfil:'Meu Perfil',config:'Configurações'};
@@ -959,10 +1127,13 @@ function nav(p){
   const pg=g('pg-'+p);if(pg)pg.classList.add('active');
   const ni=g('ni-'+p);if(ni)ni.classList.add('active');
   if(g('page-title'))g('page-title').textContent=PAGES[p]||'';
+  // Registra navegação do PA no log
+  const pnome=PAGES[p]||p;
+  if(CU&&!isAdmin()&&p!=='dashboard')audit('login','Acessou: '+pnome,'Visualização — '+paLabel(CU.pa));
   if(p==='dashboard'){updateDash();}
   else if(p==='graficos'){loadAll();renderAdminCharts();}
   else if(p==='perfil'){loadPerfil();}
-  else if(p==='config'){loadConfig();}
+  else if(p==='config'){loadConfig();renderAuditoria();}
   else if(p==='ops'){renderOps();populatePAFilter('ops-fpa');}
   else if(p==='malote'){renderMalotes();populatePAFilter('m-fpa');}
   else if(p==='reg'){renderRegs();populatePAFilter('r-fpa');}
@@ -1385,16 +1556,19 @@ window.delOpFD=function(){
   const rV=regs.filter(r=>r.opId===id);
   dbDelete('operacoes',id);mV.forEach(m=>dbDelete('malotes',m.id));rV.forEach(r=>dbDelete('regularizacoes',r.id));
   loadAll();renderOps();renderMalotes();renderRegs();updateDash();
+  audit('excluiu','Excluiu Operação','ID: '+id+' (malotes e pendências removidos)');
   toast(['Operação excluída',mV.length?'malote removido':'',rV.length?'pendência removida':''].filter(Boolean).join(' · '),'ok');
 };
 window.delMalFD=function(id){
   if(!confirm('Excluir malote?'))return;
+  audit('excluiu','Excluiu Malote','ID: '+id);
   dbDelete('malotes',id);
   loadAll();renderMalotes();updateDash();closeM('d-mal');
   toast('Malote excluído.','ok');
 };
 window.delRegFD=function(id){
   if(!confirm('Excluir pendência?'))return;
+  audit('excluiu','Excluiu Pendência','ID: '+id);
   dbDelete('regularizacoes',id);
   loadAll();renderRegs();updateDash();closeM('d-reg');
   toast('Pendência excluída.','ok');
@@ -1462,6 +1636,7 @@ window.saveOp=function(){
     dbAdd('malotes',{...d,opId,statusMalote:'Pendente',docFaltando:''});
     if(d.regularizacao)dbAdd('regularizacoes',{...d,opId,pendencia:d.regularizacao,status:'Aberta'});
     // Notificar admin sobre nova CCB
+    audit('criou','Criou Operação CCB','Contrato: '+(d.contrato||'s/n')+' · '+paLabel(d.pa)+' · '+(d.nome||''));
     criarNotif(
       'Nova CCB cadastrada — ' + (d.contrato||'s/n'),
       (d.nome||'') + ' · ' + paLabel(d.pa) + ' · ' + (d.produto||''),
@@ -1478,6 +1653,7 @@ window.saveOp=function(){
     } else {
       rV.forEach(r=>dbUpdate('regularizacoes',r.id,{status:'Regularizada'}));
     }
+    audit('editou','Editou Operação','Contrato: '+(d.contrato||'s/n')+' · '+paLabel(d.pa));
     toast('Operação atualizada!','ok');
   }
   closeM('m-op');loadAll();renderOps();renderMalotes();renderRegs();updateDash();
@@ -1503,7 +1679,7 @@ window.saveMal=function(){
   const err=g('mal-err');err.classList.add('hidden');
   if(!pa){showErr(err,'Selecione o PA.');return;}
   const d={pa,produto:v('mal-pr'),tipoAssinatura:v('mal-tas'),cpf:v('mal-cpf'),clienteNum:v('mal-cln'),nome:v('mal-nm'),contrato:v('mal-ct'),finalidade:v('mal-fin'),dataOp:v('mal-dop'),dataVenc:v('mal-dvc'),situacao:v('mal-sit'),statusMalote:v('mal-st'),docFaltando:v('mal-doc')};
-  if(!eid)dbAdd('malotes',d);else dbUpdate('malotes',eid,d);
+  if(!eid){dbAdd('malotes',d);audit('criou','Criou Malote','Contrato: '+(d.contrato||'s/n')+' · '+paLabel(d.pa));}else{dbUpdate('malotes',eid,d);audit('editou','Editou Malote','Contrato: '+(d.contrato||'s/n'));}
   toast(eid?'Malote atualizado!':'Malote criado!','ok');
   closeM('m-mal');loadAll();renderMalotes();updateDash();
 };
@@ -1528,7 +1704,7 @@ window.saveReg=function(){
   const err=g('reg-err');err.classList.add('hidden');
   if(!pend){showErr(err,'Descreva a pendência.');return;}
   const d={pa:v('reg-pa'),produto:v('reg-pr'),cpf:v('reg-cpf'),nome:v('reg-nm'),contrato:v('reg-ct'),pendencia:pend,status:v('reg-st'),resolucao:v('reg-res')};
-  if(!eid)dbAdd('regularizacoes',d);else dbUpdate('regularizacoes',eid,d);
+  if(!eid){dbAdd('regularizacoes',d);audit('criou','Criou Pendência','Contrato: '+(d.contrato||'s/n')+' · '+paLabel(d.pa));}else{dbUpdate('regularizacoes',eid,d);audit('editou','Editou Pendência','Contrato: '+(d.contrato||'s/n'));}
   toast(eid?'Pendência atualizada!':'Pendência criada!','ok');
   closeM('m-reg');loadAll();renderRegs();updateDash();
 };
@@ -1683,6 +1859,7 @@ window.doImport=function(){
   res.textContent='Importado: '+cntOp+' operações · '+cntMal+' malotes'+(cntReg?' · '+cntReg+' pendências':'');
   res.className='import-result ok';
   g('imp-txt').value='';
+  audit('importou','Importação em lote: '+cntOp+' ops / '+cntMal+' malotes'+(cntReg?' / '+cntReg+' pend.':''),'');
   toast('Importação concluída!','ok');
 };
 
@@ -1738,17 +1915,13 @@ window.exportCSV=function(tid,fn){
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,title.substring(0,31));
   XLSX.writeFile(wb,fn+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  audit('exportou','Exportou Excel','Planilha baixada');
   toast('Planilha Excel baixada!','ok');
 };
 
 window.showOpDetail=window.showOpDetail;
 window.showMalDetail=window.showMalDetail;
 window.showRegDetail=window.showRegDetail;
-window.renderOps=renderOps;
-window.renderMalotes=renderMalotes;
-window.renderRegs=renderRegs;
-window.dbDelete=dbDelete;
-window.dbUpdate=dbUpdate;
 </script>
 </body>
 </html>
