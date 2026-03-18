@@ -305,7 +305,7 @@ tr:nth-child(even) td{background:#FAFCFB}
     <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50" id="topbar">
       <button class="menu-toggle" onclick="openSB()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
       <span style="font-size:14px;font-weight:700;color:var(--txt)" id="page-title">Dashboard</span>
-      <button class="bell-btn" onclick="toggleNotifPanel()" id="bell-btn" title="Notificações">
+      <button class="bell-btn admin-only" onclick="toggleNotifPanel()" id="bell-btn" title="Notificações">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span class="notif-badge hidden" id="notif-badge">0</span>
       </button>
@@ -470,7 +470,7 @@ tr:nth-child(even) td{background:#FAFCFB}
         <div class="ph-r">
           <button class="btn btn-s edit-only" id="btn-xp-op" onclick="openXPOp()" style="display:none"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-3"/></svg> Colar Excel</button>
           <button class="btn btn-s edit-only" onclick="openM('m-import')">⬆ Importar Lote</button>
-          <button class="btn btn-s" data-export onclick="exportCSV('t-ops','Operacoes_CCB')">⬇ Excel</button>
+          <button class="btn btn-s edit-only" data-export onclick="exportCSV('t-ops','Operacoes_CCB')">⬇ Excel</button>
           <button class="btn btn-p edit-only" onclick="newOp()">+ Nova Operação</button>
         </div>
       </div>
@@ -489,7 +489,7 @@ tr:nth-child(even) td{background:#FAFCFB}
         <div class="ph-r">
           <select class="f-inp" id="m-fst" onchange="renderMalotes()"><option value="">Todos status</option><option>Pendente</option><option>Recebido</option><option>Regularizado</option></select>
           <select class="f-inp admin-only" id="m-fpa" onchange="renderMalotes()"><option value="">Todos PAs</option></select>
-          <button class="btn btn-s" data-export onclick="exportCSV('t-mal','Malotes_CCB')">⬇ Excel</button>
+          <button class="btn btn-s edit-only" data-export onclick="exportCSV('t-mal','Malotes_CCB')">⬇ Excel</button>
           <button class="btn btn-p edit-only" onclick="newMal()">+ Novo Malote</button>
         </div>
       </div>
@@ -503,7 +503,7 @@ tr:nth-child(even) td{background:#FAFCFB}
         <div class="ph-r">
           <select class="f-inp" id="r-fst" onchange="renderRegs()"><option value="">Todos status</option><option>Aberta</option><option>Em Análise</option><option>Regularizada</option></select>
           <select class="f-inp admin-only" id="r-fpa" onchange="renderRegs()"><option value="">Todos PAs</option></select>
-          <button class="btn btn-s" data-export onclick="exportCSV('t-reg','Pend_Regularizacao')">⬇ Excel</button>
+          <button class="btn btn-s edit-only" data-export onclick="exportCSV('t-reg','Pend_Regularizacao')">⬇ Excel</button>
           <button class="btn btn-p edit-only" onclick="newReg()">+ Nova Pendência</button>
         </div>
       </div>
@@ -947,7 +947,12 @@ function closeNotifPanel(){
   g('notif-panel').classList.remove('open');
   g('notif-overlay').classList.remove('show');
 }
-window.toggleNotifPanel=toggleNotifPanel;
+window.toggleNotifPanel=function(){
+  // PA não vê notificações
+  const cfg=getConfig();
+  if(cfg.notifAdmin&&!canViewAll()){return;}
+  toggleNotifPanel();
+};
 window.closeNotifPanel=closeNotifPanel;
 
 function renderNotifPanel(){
