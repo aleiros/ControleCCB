@@ -713,7 +713,10 @@ function loadAll(){
 
 // ═══ ACCESS CONTROL UI ═══
 function applyAccessUI(){
-  document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden',!isAdmin()));
+  // admin-only → admin + visitante veem
+  document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden',!canViewAll()));
+  // edit-only → SOMENTE admin (PA e visitante nunca veem botões de ação)
+  document.querySelectorAll('.edit-only').forEach(el=>el.classList.toggle('hidden',!isAdmin()));
   const niDash=g('ni-dashboard');
   if(niDash)niDash.classList.toggle('hidden',!isAdmin());
   if(isAdmin()){
